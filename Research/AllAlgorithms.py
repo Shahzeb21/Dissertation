@@ -47,7 +47,7 @@ print(Y_test.shape)
 
 """K-NN Regression"""
 
-n_neighbors = 5
+n_neighbors = 99
 
 for i, weights in enumerate(['uniform', 'distance']):
     knn = neighbors.KNeighborsRegressor(n_neighbors, weights=weights)
@@ -66,12 +66,128 @@ for i, weights in enumerate(['uniform', 'distance']):
     
     # Accuracy of the results
 
-    MSE = np.mean((Y_test - Y_) ** 2)
-    print("MEAN SQUARE ERROE: " , MSE)
+MSE = np.mean((Y_test - Y_) ** 2)
+print("MEAN SQUARE ERROR: " , MSE)
 
 precision_score(Y_test, Y_.round(), average=None)
 plt.show()
 
+PredictedY = pd.DataFrame(Y_)
+
+count = 0
+for i in range (Y_test.size):
+    #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+    if (Y_test.iloc[i]['athome'] == PredictedY.iloc[i][0]):
+        count = count + 1
+        
+percentage = 100*(count/Y_test.size)
+pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
+print('The precision score: ' , pres_scr)
+print('The algorithm predicted ', count ,'/', Y_test.size , ' correctly')
+print('That is an accuracy percentage off: ', percentage )
+
+k =0
+K =[1]
+AccuracyDist = []
+AccuracyUnifrm = []
+MSE_Dist = []
+MSE_Unifrm = []
+percentage_Dist = []
+percentage_Unifrm = []
+
+while k<156:
+    k = k+3
+    K.append(k)
+    print(K)
+    
+for k in K:
+    for i, weights in enumerate(['distance']):
+        knn = neighbors.KNeighborsRegressor(k, weights=weights)
+    
+        # Fitting regression model and Predicting the results
+        Y_ = knn.fit(X_train, Y_train).predict(X_test)
+        PredictedY = pd.DataFrame(Y_)
+        pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
+        percentage_prescision = pres_scr*100
+        AccuracyDist.append(pres_scr)
+        MSE_Dist.append(np.mean((Y_test - Y_) ** 2))
+        
+        count = 0
+        for i in range (Y_test.size):
+            #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+            if (Y_test.iloc[i]['athome'] == PredictedY.iloc[i][0]):
+                count = count + 1
+        percentage_Dist.append(100*(count/Y_test.size))
+
+     
+    for i, weights in enumerate(['uniform']):
+        knn = neighbors.KNeighborsRegressor(k, weights=weights)
+    
+        # Fitting regression model and Predicting the results
+        Y_ = knn.fit(X_train, Y_train).predict(X_test)
+        PredictedY = pd.DataFrame(Y_)
+        pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
+        percentage_prescision = pres_scr*100
+        AccuracyUnifrm.append(pres_scr)
+        MSE_Unifrm.append(np.mean((Y_test - Y_) ** 2))
+        
+        count = 0
+        for i in range (Y_test.size):
+            #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+            if (Y_test.iloc[i]['athome'] == PredictedY.iloc[i][0]):
+                count = count + 1
+        percentage_Unifrm.append(100*(count/Y_test.size))
+
+
+print(AccuracyDist)
+print(AccuracyUnifrm)
+print(percentage_Dist)
+print(percentage_Unifrm)
+
+MSE_U = []
+MSE_D = []
+for i in range (0, len(MSE_Unifrm)):
+    MSE_U.append(MSE_Unifrm[i]['athome'])
+    MSE_D.append(MSE_Dist[i]['athome'])
+    
+print(MSE_U)
+print(MSE_D)
+
+plt.plot(K, AccuracyDist, 'purple', label='Distance')
+plt.plot(K, AccuracyUnifrm, 'darkgreen', label='Uniform')
+
+#Plot for the Precision Score against the number of nearest neigbours
+#plt.plot(K,AccuracyDist,'ro')
+plt.ylabel('Precision Score')
+plt.xlabel('Values of "k"')
+plt.legend()
+plt.title("Precision Score against Nearest Neighbours")
+plt.show()
+print(len(K))
+
+plt.plot(K, percentage_Dist, 'blue', label='Distance')
+plt.plot(K, percentage_Unifrm, 'lightsalmon', label='Uniform')
+
+#Plot for the Precision Score against the number of nearest neigbours
+plt.ylabel('Accuracy')
+plt.xlabel('Values of "k"')
+plt.legend()
+plt.title("Accuracy against Nearest Neighbours")
+plt.show()
+print(len(K))
+
+
+#Plot for the MSE against the number of nearest neigbours
+plt.plot(K, MSE_U, 'red', label='Uniform')
+plt.plot(K, MSE_D, 'k', label='Distance')
+
+plt.ylabel('Mean Square Error')
+plt.xlabel('Values of "k"')
+plt.legend()
+plt.title("The Mean Square Error against Nearest Neighbours")
+plt.show()
+print(len(K))
+   
 
 """--------------------------------------------------------------"""
 
@@ -238,7 +354,7 @@ print(Y_test.head(10)['athome'], new_Pre.head(10)[0])
 
 count = 0
 for i in range (Y_test.size):
-    #print(Y_test.iloc[i]['athome'], ' - ' , new_Pre.iloc[i][0])
+    print(Y_test.iloc[i]['athome'], ' - ' , new_Pre.iloc[i][0])
     if (Y_test.iloc[i]['athome'] == new_Pre.iloc[i][0]):
         count = count + 1
 
