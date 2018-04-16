@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import sklearn
 import re
 from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPRegressor
 from sklearn import neighbors
@@ -45,9 +46,25 @@ print(Y_test.shape)
 
 """--------------------------------------------------------------"""
 
+def AccPerc(Training , Prectiction):
+
+    PredictedY = pd.DataFrame(Prectiction)
+    
+    count = 0
+    for i in range (Training.size):
+        #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+        if (Training.iloc[i]['athome'] == PredictedY.iloc[i][0]):
+            count = count + 1
+            
+    percentage = 100*(count/Training.size)
+    pres_scr = precision_score(Training, Prectiction.round(), average='weighted')
+    print('The precision score: ' , pres_scr)
+    print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
+    print('That is an accuracy percentage off: ', percentage )
+
 """K-NN Regression"""
 
-n_neighbors = 99
+n_neighbors = 3
 
 for i, weights in enumerate(['uniform', 'distance']):
     knn = neighbors.KNeighborsRegressor(n_neighbors, weights=weights)
@@ -72,19 +89,10 @@ print("MEAN SQUARE ERROR: " , MSE)
 precision_score(Y_test, Y_.round(), average=None)
 plt.show()
 
-PredictedY = pd.DataFrame(Y_)
+#Accuracy defining function called
 
-count = 0
-for i in range (Y_test.size):
-    #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
-    if (Y_test.iloc[i]['athome'] == PredictedY.iloc[i][0]):
-        count = count + 1
-        
-percentage = 100*(count/Y_test.size)
-pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
-print('The precision score: ' , pres_scr)
-print('The algorithm predicted ', count ,'/', Y_test.size , ' correctly')
-print('That is an accuracy percentage off: ', percentage )
+
+AccPerc (Y_test,Y_)
 
 k =0
 K =[1]
@@ -106,9 +114,9 @@ for k in K:
     
         # Fitting regression model and Predicting the results
         Y_ = knn.fit(X_train, Y_train).predict(X_test)
+        
         PredictedY = pd.DataFrame(Y_)
         pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
-        percentage_prescision = pres_scr*100
         AccuracyDist.append(pres_scr)
         MSE_Dist.append(np.mean((Y_test - Y_) ** 2))
         
@@ -127,7 +135,6 @@ for k in K:
         Y_ = knn.fit(X_train, Y_train).predict(X_test)
         PredictedY = pd.DataFrame(Y_)
         pres_scr = precision_score(Y_test, Y_.round(), average='weighted')
-        percentage_prescision = pres_scr*100
         AccuracyUnifrm.append(pres_scr)
         MSE_Unifrm.append(np.mean((Y_test - Y_) ** 2))
         
@@ -200,11 +207,8 @@ LR.fit(X_train, Y_train)
 
 #pre_train = LR.predict(X_train)
 
-# TESTING
-
+#Prediction
 pre_test = LR.predict(X_test)
-
-
 
 print(Y_test.head(10))
 print(pd.DataFrame(pre_test).head(10))
@@ -219,14 +223,13 @@ MSE2 = np.mean((Y_test - pre_test) ** 2)
 print("Fit X_train, and calculate the error with X_test, Y_test:", MSE2) 
 
 # Accuracy of the result
-
 accu = np.average(Y_test) - np.average(pre_test)
 
+AccPerc (Y_test,pre_test)
 
 print("Error of the result:(%)", accu)
 
 # Plotting the residual graph
-
 """
 plt.scatter(pre_train, pre_train - Y_train, c='b', s=10, alpha=1)
 plt.scatter(t_X['unit'], t_X['kwh'], c='g', s=10)
@@ -268,76 +271,76 @@ plt.scatter(x=t_X[['unit']], y=t_X[['kwh']], c=col[relabel], s=10)
 plt.axis('auto')
 plt.title("K-means Classification")
 
-# Converting numpyndarray array to pandas.dataframe to make it callable
-callable = pd.DataFrame(Y_)
-
-# Pinting first 20 values of the testing and predicted data
-print("This is the testing data: ",Y_test.head(20))   
-print("This is the predicted data: ",callable.head(10))
-
 # calculating precision score of the algorithm
 precision_score(Y_test, Y_.round(), average=None)
 
 print(classification_report(y, relabel))
 
-
 """ Statistics """
 # https://en.wikipedia.org/wiki/Precision_and_recall
+#Function to calculate True positives and False positives and True negatives and False negatives
 
-#program to calculate True positives and False positives and True negatives and False negatives
+def StatsCalc(TestingData , PredictionData):
+    # Converting numpyndarray array to pandas.dataframe to make it callable
+    callable = pd.DataFrame(PredictionData)
+    
+    # The total conditions that are positives
+    CP = 0
+    # The total conditions that are negatives
+    CN = 0
+    # When the person is infact home and predicted to be home
+    TP = 0
+    # When the person is not home but predicted to be home
+    FP = 0 
+    # When the person is not home and predicted to not be home
+    TN = 0
+    # When the person is home but predicted to not be home
+    FN = 0
+    
+    for i in range (TestingData.size):
+        # Calculating positive conditions
+        if TestingData.iloc[i]['athome'] > 0:
+            CP = CP + 1
+        # Calculating negative conditions
+        elif TestingData.iloc[i]['athome'] == 0:
+            CN = CN + 1
+            
+            
+        # Calculating true positives
+        if TestingData.iloc[i]['athome'] == ((callable.iloc[i][0]).round()) and (TestingData.iloc[i]['athome']) > 0:
+            TP = TP + 1
+        # Calculating false positives
+        elif (TestingData.iloc[i]['athome'] == 0) and ((callable.iloc[i][0]).round() > 0):
+            FP = FP + 1
+        # calculating true negatives
+        elif (TestingData.iloc[i]['athome']) == ((callable.iloc[i][0]).round()) == 0:
+            TN = TN + 1
+        # Calculating false negatives
+        elif ((TestingData.iloc[i]['athome']) > 0) and ((callable.iloc[i][0]).round() == 0):
+            FN = FN + 1
+        
+    print("True positives: " , TP)
+    print("False positives: " , FP)
+    print("True negitives: " , TN)
+    print("False negitives: " , FN)
+    print("Conditions positives: " , CP)
+    print("Condition negitives: " , CN)
+    print("TOTAL: ", TP+FP+TN+FN)
+    print("Total Predicted Instances: " , TestingData.size)
+    
+# Pinting first 20 values of the testing and predicted data
+print("This is the testing data: ",Y_test.head(20))   
+print("This is the predicted data: ",callable.head(10))
+
+""" Statistics """
 
 #Trying to figure out how to access the data sets
 print(Y_test.iloc[2]['athome'])
 print(callable.iloc[3][0])
 
 
-# The total conditions that are positives
-CP = 0
-# The total conditions that are negatives
-CN = 0
-# When the person is infact home and predicted to be home
-TP = 0
-# When the person is not home but predicted to be home
-FP = 0 
-# When the person is not home and predicted to not be home
-TN = 0
-# When the person is home but predicted to not be home
-FN = 0
-
-for i in range (Y_test.size):
-    # Calculating positive conditions
-    if Y_test.iloc[i]['athome'] > 0:
-        CP = CP + 1
-    # Calculating negative conditions
-    elif Y_test.iloc[i]['athome'] == 0:
-        CN = CN + 1
-        
-        
-    # Calculating true positives
-    if Y_test.iloc[i]['athome'] == (callable.iloc[i][0]).round():
-        TP = TP + 1
-    # Calculating false positives
-    elif (Y_test.iloc[i]['athome'] == 0) & ((callable.iloc[i][0]).round() > Y_test.iloc[i]['athome']):
-        FP = FP + 1
-    # calculating true negatives
-    elif (Y_test.iloc[i]['athome']) == ((callable.iloc[i][0]).round()) == 0:
-        TN = TN + 1
-    # Calculating false negatives
-    elif ((Y_test.iloc[i]['athome']) > 0) & ((callable.iloc[i][0]).round() == 0):
-        FN = FN + 1
-        
-    
-print(TP)
-print(FP)
-print(TN)
-print(FN)
-print(CP)
-print(CN)
-print(Y_test.size)
-
 """------------------------------------------------------"""
-from sklearn.neighbors import KNeighborsClassifier
-
+"""k-NN Classification"""
 ne = KNeighborsClassifier(n_neighbors=3)
 
 Xnt = t_X[['kwh','unit']]
@@ -351,19 +354,8 @@ predictD = ne.predict(X_test)
 new_Pre = pd.DataFrame(predictD)
 print(Y_test.head(10)['athome'], new_Pre.head(10)[0])
 
-
-count = 0
-for i in range (Y_test.size):
-    print(Y_test.iloc[i]['athome'], ' - ' , new_Pre.iloc[i][0])
-    if (Y_test.iloc[i]['athome'] == new_Pre.iloc[i][0]):
-        count = count + 1
-
-percentage = 100*(count/Y_test.size)
-pres_scr = precision_score(Y_test, predictD, average='weighted')
-
-print('The algorithm predicted ', count ,'/', Y_test.size , ' correctly')
-print('That is an accuracy percentage off: ', percentage )
-print(pres_scr)
+AccPerc(Y_test, predictD)
+StatsCalc(Y_test, predictD)
 
 print(Y_test.head(20))
 print(Y_train.head(20))
