@@ -71,7 +71,7 @@ for i, weights in enumerate(['uniform', 'distance']):
     
     # Fitting regression model and Predicting the results
     Y_ = knn.fit(X_train, Y_train).predict(X_test)
-    
+    print(Y_)
     # Plotting a graph
     plt.subplot(2, 1, i + 1)
     plt.scatter(X_train.mean(axis=1), Y_train, c='k', label='electricitydata')

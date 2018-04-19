@@ -10,6 +10,23 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 import sklearn
 import pandas as pd
+from sklearn.metrics import precision_score
+
+def AccPerc(Training , Prectiction):
+
+    PredictedY = pd.DataFrame(Prectiction)
+    
+    count = 0
+    for i in range (Training.size):
+        #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+        if (Training.iloc[i]['athome'] == PredictedY.iloc[i][0]):
+            count = count + 1
+            
+    percentage = 100*(count/Training.size)
+    pres_scr = precision_score(Training, Prectiction.round(), average='weighted')
+    print('The precision score: ' , pres_scr)
+    print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
+    print('That is an accuracy percentage off: ', percentage )
 
 #http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html#sphx-glr-auto-examples-linear-model-plot-ols-py
 
@@ -51,8 +68,10 @@ plt.yticks(())
 plt.show()
 
 plt.scatter(X_test.mean(axis=1), Y_test, c='k', label='data')
-plt.scatter(X_test.mean(axis=1), y_pred, c='r', label='prediction')
+plt.scatter(X_test.mean(axis=1), y_pred, c='b', label='prediction')
 plt.axis(ymin=-0.5, ymax=2.5)
 plt.legend()
 plt.title("Actual data vs Predicted results")
 plt.show
+
+AccPerc(Y_test , y_pred)
