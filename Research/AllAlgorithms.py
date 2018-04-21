@@ -61,6 +61,22 @@ def AccPerc(Training , Prectiction):
     print('The precision score: ' , pres_scr)
     print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
     print('That is an accuracy percentage off: ', percentage )
+    
+def AccPercLinear(Training , Prectiction):
+
+    PredictedY = pd.DataFrame(Prectiction)
+    
+    count = 0
+    for i in range (Training.size):
+        #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
+        if (Training.iloc[i]['athome'] == (PredictedY.iloc[i][0]).round()):
+            count = count + 1
+            
+    percentage = 100*(count/Training.size)
+    pres_scr = precision_score(Training, Prectiction.round(), average='weighted')
+    print('The precision score: ' , pres_scr)
+    print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
+    print('That is an accuracy percentage off: ', percentage )
 
 """K-NN Regression"""
 

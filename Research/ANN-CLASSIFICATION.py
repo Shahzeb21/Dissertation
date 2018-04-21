@@ -1,27 +1,35 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Apr 14 19:07:51 2018
+Created on Thu Apr 19 15:19:39 2018
 
-@author: shahz
+@author: huzmorgoth
 """
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import datasets, linear_model
-from sklearn.metrics import mean_squared_error, r2_score
+
+from keras.models import Sequential
+from keras.utils import np_utils
+from keras.layers.core import Dense, Activation, Dropout
 import sklearn
+from sklearn import model_selection
 import pandas as pd
-from sklearn.metrics import precision_score
-from matplotlib.ticker import FuncFormatter
+import numpy as np
 
+# Read data
+X_t = pd.read_csv(r'''C:\Users\shahz\Documents\303 - RESEARCH 2018\Dissertation\Research\electricitydatasetUnit.csv''')
 
-def AccPercLinear(Training , Prectiction):
+X = X_t[['kwh','unit']]
+y = X_t[['athome']]
+
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size = 0.33, random_state = 4)
+
+def AccPerc(Training , Prectiction):
 
     PredictedY = pd.DataFrame(Prectiction)
     
     count = 0
     for i in range (Training.size):
         #print(Y_test.iloc[i]['athome'], ' - ' , PredictedY.iloc[i][0])
-        if (Training.iloc[i]['athome'] == (PredictedY.iloc[i][0]).round()):
+        if (Training.iloc[i]['athome'] == PredictedY.iloc[i][0]):
             count = count + 1
             
     percentage = 100*(count/Training.size)
@@ -29,7 +37,7 @@ def AccPercLinear(Training , Prectiction):
     print('The precision score: ' , pres_scr)
     print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
     print('That is an accuracy percentage off: ', percentage )
-    
+
 def StatsCalc(TestingData , PredictionData):
     # Converting numpyndarray array to pandas.dataframe to make it callable
     callable = pd.DataFrame(PredictionData)
@@ -77,68 +85,55 @@ def StatsCalc(TestingData , PredictionData):
     print("Condition negitives: " , CN)
     print("TOTAL: ", TP+FP+TN+FN)
     print("Total Predicted Instances: " , TestingData.size)
-#http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html#sphx-glr-auto-examples-linear-model-plot-ols-py
 
-t_X = pd.read_csv(r'''C:\Users\shahz\Documents\303 - RESEARCH 2018\Dissertation\Research\electricitydatasetUnit.csv''')
+#labels = train.ix[:,0].values.astype('int32')
+#X_train = (train.ix[:,1:].values).astype('float32')
+#X_test = (pd.read_csv('../input/test.csv').values).astype('float32')
 
-X = t_X[['kwh','unit']]
+# convert list of labels to binary class matrix
+Y_train = np_utils.to_categorical(y_train) 
 
-y = t_X[['athome']]
+# pre-processing: divide by max and substract mean
+scale = np.max(X_train)
+X_train /= scale
+X_test /= scale
 
-X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.33, random_state = 4)
+mean = np.std(X_train)
+X_train -= mean
+X_test -= mean
 
-# Create linear regression object
-regr = linear_model.LinearRegression()
+input_dim = X_train.shape[1]
+nb_classes = Y_train.shape[1]
 
-# Train the model using the training sets
-regr.fit(X_train, Y_train)
+# Here's a Deep MLP (DDMLP)
+model = Sequential()
+model.add(Dense(128, input_dim=input_dim))
+model.add(Activation('relu'))
+model.add(Dropout(0.15))
+model.add(Dense(128))
+model.add(Activation('relu'))
+model.add(Dropout(0.15))
+model.add(Dense(nb_classes))
+model.add(Activation('softmax'))
 
-# Make predictions using the testing set
-y_pred = regr.predict(X_test)
+# we'll use categorical xent for the loss, and RMSprop as the optimizer
+model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
-print(X_test.size)
-print(Y_test.size)
+print("Training...")
+model.fit(X_train, Y_train, nb_epoch=100, batch_size=32, validation_split=0.1, verbose=2)
 
-# The coefficients
-print('Coefficients: \n', regr.coef_)
-# The mean squared error
-print("Mean squared error: %.2f"
-      % mean_squared_error(Y_test, y_pred))
-# Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(Y_test, y_pred))
+print("Generating test predictions...")
+preds = model.predict_classes(X_test, verbose=0)
 
-# Plot outputs
-plt.scatter(X_test.mean(axis=1), Y_test,  color='black')
-plt.plot(X_test,y_pred, color='blue', linewidth=3)
+print(y_test,"-",preds)
 
-plt.xticks(())
-plt.yticks(())
+#Predictions = pd.DataFrame(preds) 
+#for i in range (y_test.size):
+#    print(y_test.iloc[i]['athome'], ' - ' , Predictions.iloc[i][0])
+    
+AccPerc(y_test,preds)
+StatsCalc(y_test,preds)
+#def write_preds(preds, fname):
+ #   pd.DataFrame({"unit and kwh": list(range(1,len(preds)+1)), "Label": preds}).to_csv(fname, index=False, header=True)
 
-plt.show()
-
-plt.scatter(X_test.mean(axis=1), Y_test, c='k', label='data')
-plt.scatter(X_test.mean(axis=1), y_pred, c='b', label='prediction')
-plt.axis(ymin=-0.5, ymax=2.5)
-plt.legend()
-plt.title("Actual data vs Predicted results")
-plt.show
-
-AccPercLinear(Y_test , y_pred)
-StatsCalc(Y_test , y_pred)
-
-x = np.arange(4)
-money = [541e5, 214e5, 145e5, 102e5]
-
-
-def statistics(x, pos):
-    'The two args are the value and tick position'
-    return '%1f' % (x * 1e-0)
-
-
-formatter = FuncFormatter(statistics)
-
-fig, ax = plt.subplots()
-ax.yaxis.set_major_formatter(formatter)
-plt.bar(x, money)
-plt.xticks(x, ('TP', 'FP', 'TN', 'FN'))
-plt.show()
+#write_preds(preds, "keras-mlp.csv")

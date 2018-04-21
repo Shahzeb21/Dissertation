@@ -29,10 +29,10 @@ model.add(Dense(64, activation='relu', input_dim=2))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(1, activation='softmax'))
+model.add(Dense(3, activation='softmax'))
 
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='sparse_categorical_crossentropy',
+model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
 
@@ -41,7 +41,7 @@ model.fit(X_train, Y_train,
           batch_size=None)
 
 #playing around
-model.predict(X_train, batch_size=None, verbose=0, steps=None)
+prediction = model.predict(X_train, batch_size=None, verbose=0, steps=None)
 model.predict_on_batch(X_train)
 
 model.evaluate(X_test, Y_test, batch_size=32)
