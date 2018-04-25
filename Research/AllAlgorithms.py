@@ -30,13 +30,14 @@ import sklearn.metrics as sm
 from sklearn.metrics import confusion_matrix,classification_report
 from sklearn.metrics import precision_score
 
-#t_X = pd.read_csv(r'''C:\Users\shahz\Documents\Research\electricitydatasetUnit.csv''')
+#Import csv file and read into Variable X_t
 t_X = pd.read_csv(r'''C:\Users\shahz\Documents\303 - RESEARCH 2018\Dissertation\Research\electricitydatasetUnit.csv''')
 
+#Split the data into two sets, power and unit (X) and athome (Y)(Prediction Variable)
 X = t_X[['kwh','unit']]
-
 y = t_X[['athome']]
 
+#Train the dataset, split in a percentage of 33 to 67%. Training = 24000, Testing = 11970
 X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.33, random_state = 4)
 
 print(X_train.shape)
@@ -45,7 +46,7 @@ print(Y_train.shape)
 print(Y_test.shape)
 
 """--------------------------------------------------------------"""
-
+#Function to calculate of accuracy of predictive algorithm (Unrounded)
 def AccPerc(Training , Prectiction):
 
     PredictedY = pd.DataFrame(Prectiction)
@@ -61,7 +62,8 @@ def AccPerc(Training , Prectiction):
     print('The precision score: ' , pres_scr)
     print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
     print('That is an accuracy percentage off: ', percentage )
-    
+
+#Function to calculate of accuracy of predictive algorithm (Rounded)   
 def AccPercLinear(Training , Prectiction):
 
     PredictedY = pd.DataFrame(Prectiction)
@@ -78,7 +80,59 @@ def AccPercLinear(Training , Prectiction):
     print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
     print('That is an accuracy percentage off: ', percentage )
 
-"""K-NN Regression"""
+""" Statistics """
+# https://en.wikipedia.org/wiki/Precision_and_recall
+#Function to calculate True positives and False positives and True negatives and False negatives
+
+def StatsCalc(TestingData , PredictionData):
+    # Converting numpyndarray array to pandas.dataframe to make it callable
+    callable = pd.DataFrame(PredictionData)
+    
+    # The total conditions that are positives
+    CP = 0
+    # The total conditions that are negatives
+    CN = 0
+    # When the person is infact home and predicted to be home
+    TP = 0
+    # When the person is not home but predicted to be home
+    FP = 0 
+    # When the person is not home and predicted to not be home
+    TN = 0
+    # When the person is home but predicted to not be home
+    FN = 0
+    
+    for i in range (TestingData.size):
+        # Calculating positive conditions
+        if TestingData.iloc[i]['athome'] > 0:
+            CP = CP + 1
+        # Calculating negative conditions
+        elif TestingData.iloc[i]['athome'] == 0:
+            CN = CN + 1
+            
+            
+        # Calculating true positives
+        if TestingData.iloc[i]['athome'] == ((callable.iloc[i][0]).round()) and (TestingData.iloc[i]['athome']) > 0:
+            TP = TP + 1
+        # Calculating false positives
+        elif (TestingData.iloc[i]['athome'] == 0) and ((callable.iloc[i][0]).round() > 0):
+            FP = FP + 1
+        # calculating true negatives
+        elif (TestingData.iloc[i]['athome']) == ((callable.iloc[i][0]).round()) == 0:
+            TN = TN + 1
+        # Calculating false negatives
+        elif ((TestingData.iloc[i]['athome']) > 0) and ((callable.iloc[i][0]).round() == 0):
+            FN = FN + 1
+        
+    print("True positives: " , TP)
+    print("False positives: " , FP)
+    print("True negitives: " , TN)
+    print("False negitives: " , FN)
+    print("Conditions positives: " , CP)
+    print("Condition negitives: " , CN)
+    print("TOTAL: ", TP+FP+TN+FN)
+    print("Total Predicted Instances: " , TestingData.size)
+ 
+"""----------------------------------K-NN Regression-----------------------------------------"""
 
 n_neighbors = 3
 
@@ -91,11 +145,11 @@ for i, weights in enumerate(['uniform', 'distance']):
     # Plotting a graph
     plt.subplot(2, 1, i + 1)
     plt.scatter(X_train.mean(axis=1), Y_train, c='k', label='electricitydata')
-    plt.plot(X_test.mean(axis=1), Y_, c='lightsalmon', label='predictedElectData')
+    plt.scatter(X_test.mean(axis=1), Y_, c='lightsalmon', label='predictedElectData')
     plt.subplots_adjust(hspace=.5)
     plt.axis(ymin=-0.5, ymax=2.5)
     plt.legend()
-    plt.title("\nKNeighborsRegressor (k = %i, weights = '%s')" % (n_neighbors,weights))
+    plt.title("\nk-NN Regressor (k = %i, weights = '%s')" % (n_neighbors,weights))
     
     # Accuracy of the results
 
@@ -106,10 +160,9 @@ precision_score(Y_test, Y_.round(), average=None)
 plt.show()
 
 #Accuracy defining function called
-
-
 AccPerc (Y_test,Y_)
-
+StatsCalc(Y_test,Y_)
+#Lists created for visualising data for variable values of k
 k =0
 K =[1]
 AccuracyDist = []
@@ -241,8 +294,8 @@ print("Fit X_train, and calculate the error with X_test, Y_test:", MSE2)
 # Accuracy of the result
 accu = np.average(Y_test) - np.average(pre_test)
 
-AccPerc (Y_test,pre_test)
-
+AccPercLinear (Y_test,pre_test)
+StatsCalc(Y_test,pre_test)
 print("Error of the result:(%)", accu)
 
 # Plotting the residual graph
@@ -256,7 +309,7 @@ plt.ylabel("residuals")
 
 plt.scatter(X_test.mean(axis=1), Y_test, c='k', label='data')
 plt.scatter(X_test.mean(axis=1), pre_test, c='r', label='prediction')
-plt.axis(ymin=0, ymax=3)
+plt.axis(ymin=-0.5, ymax=2.5)
 plt.legend()
 plt.title("Actual data vs Predicted results")
 plt.show
@@ -292,58 +345,7 @@ precision_score(Y_test, Y_.round(), average=None)
 
 print(classification_report(y, relabel))
 
-""" Statistics """
-# https://en.wikipedia.org/wiki/Precision_and_recall
-#Function to calculate True positives and False positives and True negatives and False negatives
-
-def StatsCalc(TestingData , PredictionData):
-    # Converting numpyndarray array to pandas.dataframe to make it callable
-    callable = pd.DataFrame(PredictionData)
-    
-    # The total conditions that are positives
-    CP = 0
-    # The total conditions that are negatives
-    CN = 0
-    # When the person is infact home and predicted to be home
-    TP = 0
-    # When the person is not home but predicted to be home
-    FP = 0 
-    # When the person is not home and predicted to not be home
-    TN = 0
-    # When the person is home but predicted to not be home
-    FN = 0
-    
-    for i in range (TestingData.size):
-        # Calculating positive conditions
-        if TestingData.iloc[i]['athome'] > 0:
-            CP = CP + 1
-        # Calculating negative conditions
-        elif TestingData.iloc[i]['athome'] == 0:
-            CN = CN + 1
-            
-            
-        # Calculating true positives
-        if TestingData.iloc[i]['athome'] == ((callable.iloc[i][0]).round()) and (TestingData.iloc[i]['athome']) > 0:
-            TP = TP + 1
-        # Calculating false positives
-        elif (TestingData.iloc[i]['athome'] == 0) and ((callable.iloc[i][0]).round() > 0):
-            FP = FP + 1
-        # calculating true negatives
-        elif (TestingData.iloc[i]['athome']) == ((callable.iloc[i][0]).round()) == 0:
-            TN = TN + 1
-        # Calculating false negatives
-        elif ((TestingData.iloc[i]['athome']) > 0) and ((callable.iloc[i][0]).round() == 0):
-            FN = FN + 1
-        
-    print("True positives: " , TP)
-    print("False positives: " , FP)
-    print("True negitives: " , TN)
-    print("False negitives: " , FN)
-    print("Conditions positives: " , CP)
-    print("Condition negitives: " , CN)
-    print("TOTAL: ", TP+FP+TN+FN)
-    print("Total Predicted Instances: " , TestingData.size)
-    
+   
 # Pinting first 20 values of the testing and predicted data
 print("This is the testing data: ",Y_test.head(20))   
 print("This is the predicted data: ",callable.head(10))
@@ -375,3 +377,12 @@ StatsCalc(Y_test, predictD)
 
 print(Y_test.head(20))
 print(Y_train.head(20))
+
+# Plotting a graph
+plt.subplot(2, 1, i + 1)
+plt.scatter(X_train.mean(axis=1), Y_train, c='k', label='electricitydata')
+plt.scatter(X_test.mean(axis=1), predictD, c='orange', label='predictedElectData')
+plt.subplots_adjust(hspace=.5)
+plt.axis(ymin=-0.5, ymax=2.5)
+plt.legend(loc='best')
+plt.title("k-NN Classifier - Actual VS Predicted data")

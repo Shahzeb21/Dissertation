@@ -117,10 +117,10 @@ plt.yticks(())
 plt.show()
 
 plt.scatter(X_test.mean(axis=1), Y_test, c='k', label='data')
-plt.scatter(X_test.mean(axis=1), y_pred, c='b', label='prediction')
+plt.scatter(X_test.mean(axis=1), y_pred, c='lightbrown', label='prediction')
 plt.axis(ymin=-0.5, ymax=2.5)
-plt.legend()
-plt.title("Actual data vs Predicted results")
+plt.legend(loc='best')
+plt.title("Linear Regression - Actual VS Predicted data")
 plt.show
 
 AccPercLinear(Y_test , y_pred)
@@ -132,11 +132,13 @@ money = [541e5, 214e5, 145e5, 102e5]
 
 def statistics(x, pos):
     'The two args are the value and tick position'
-    return '%1f' % (x * 1e-0)
+    print('%1f' % (x * 1000e-6))
+    return '%1f' % (x * 1000e-6)
 
+print(statistics)
 
 formatter = FuncFormatter(statistics)
-
+print(formatter)
 fig, ax = plt.subplots()
 ax.yaxis.set_major_formatter(formatter)
 plt.bar(x, money)

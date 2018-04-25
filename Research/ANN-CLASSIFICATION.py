@@ -13,15 +13,19 @@ import sklearn
 from sklearn import model_selection
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Read data
+#Import csv file and read into Variable X_t
 X_t = pd.read_csv(r'''C:\Users\shahz\Documents\303 - RESEARCH 2018\Dissertation\Research\electricitydatasetUnit.csv''')
 
+#Split the data into two sets, power and unit (X) and athome (Y)(Prediction Variable)
 X = X_t[['kwh','unit']]
 y = X_t[['athome']]
 
+#Train the dataset, split in a percentage of 33 to 67%. Training = 24000, Testing = 11970
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size = 0.33, random_state = 4)
 
+#Function to calculate accuracy of predictive algorithm
 def AccPerc(Training , Prectiction):
 
     PredictedY = pd.DataFrame(Prectiction)
@@ -38,6 +42,7 @@ def AccPerc(Training , Prectiction):
     print('The algorithm predicted ', count ,'/', Training.size , ' correctly')
     print('That is an accuracy percentage off: ', percentage )
 
+#Function to calculate required statistics Variables
 def StatsCalc(TestingData , PredictionData):
     # Converting numpyndarray array to pandas.dataframe to make it callable
     callable = pd.DataFrame(PredictionData)
@@ -86,9 +91,6 @@ def StatsCalc(TestingData , PredictionData):
     print("TOTAL: ", TP+FP+TN+FN)
     print("Total Predicted Instances: " , TestingData.size)
 
-#labels = train.ix[:,0].values.astype('int32')
-#X_train = (train.ix[:,1:].values).astype('float32')
-#X_test = (pd.read_csv('../input/test.csv').values).astype('float32')
 
 # convert list of labels to binary class matrix
 Y_train = np_utils.to_categorical(y_train) 
@@ -136,4 +138,10 @@ StatsCalc(y_test,preds)
 #def write_preds(preds, fname):
  #   pd.DataFrame({"unit and kwh": list(range(1,len(preds)+1)), "Label": preds}).to_csv(fname, index=False, header=True)
 
-#write_preds(preds, "keras-mlp.csv")
+#Plot predictions
+plt.scatter(X_test.mean(axis=1), y_test, c='k', label='data')
+plt.scatter(X_test.mean(axis=1), preds, c='r', label='prediction')
+plt.axis(ymin=-0.5, ymax=2.5)
+plt.legend()
+plt.title("NN - Actual VS Predicted data")
+plt.show
