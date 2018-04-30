@@ -108,8 +108,6 @@ def StatsCalc(TestingData , PredictionData):
         # Calculating negative conditions
         elif TestingData.iloc[i]['athome'] == 0:
             CN = CN + 1
-            
-            
         # Calculating true positives
         if TestingData.iloc[i]['athome'] == ((callable.iloc[i][0]).round()) and (TestingData.iloc[i]['athome']) > 0:
             TP = TP + 1
