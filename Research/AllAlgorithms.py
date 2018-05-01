@@ -314,12 +314,12 @@ plt.show
 
 """-------------------------------------------------------------"""
 
-"""KNN Clustering"""
+"""Clustering"""
 
-plt.scatter(t_X['kwh'], t_X['unit'], c='lightsalmon', s=10)
-plt.title("Actual Data")
-plt.ylabel("Time /mins")
-plt.xlabel("Power /kwh")
+plt.scatter(t_X['unit'], t_X['kwh'], c='lightsalmon', s=10)
+plt.title("Clustering")
+plt.ylabel("Power /kwh")
+plt.xlabel("Time /mins")
 
 """-------------------------------------"""
   
@@ -359,10 +359,6 @@ print(callable.iloc[3][0])
 """k-NN Classification"""
 ne = KNeighborsClassifier(n_neighbors=3)
 
-Xnt = t_X[['kwh','unit']]
-
-ynt = t_X[['athome']]
- 
 ne.fit(X_train, Y_train)
 
 predictD = ne.predict(X_test)
